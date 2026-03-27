@@ -81,3 +81,71 @@ Flashcards can also be exported in **printable grid format**
 ---
 
 ## Project Structure
+
+src/
+│
+├── pages/ # App pages (Explain, Quiz, Flashcards)
+├── services/
+│ └── gemini.ts # API integration
+├── store/
+│ └── useStore.ts # Global state (Zustand)
+├── utils/
+│ └── exportPdf.ts # PDF export logic
+│
+├── App.tsx
+├── main.tsx
+└── index.css
+
+
+---
+
+## Environment Variables
+
+Create a `.env.local` file in the root:
+VITE_GEMINI_API_KEY=your_api_key_here
+
+
+This file is ignored via `.gitignore` and should not be pushed to GitHub.
+
+---
+
+## Installation and Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/your-username/adaptive-learning-ai.git
+
+# Navigate into the project
+cd adaptive-learning-ai
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+
+Deployment
+
+Deployed using Vercel:
+
+Push repository to GitHub
+Import into Vercel
+Add environment variable:
+VITE_GEMINI_API_KEY
+Deploy
+Use Cases
+Students learning complex topics
+Teachers creating differentiated content
+Self-learners seeking intuitive explanations
+Revision through flashcards and quizzes
+Future Improvements
+Authentication and database integration (save sessions)
+Dark mode
+Shareable learning sessions
+Mobile optimization
+Voice-based explanations
+Contributing
+
+Pull requests are welcome.
+For major changes, please open an issue first to discuss proposed updates.
