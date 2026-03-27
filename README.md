@@ -78,19 +78,19 @@ Flashcards can also be exported in **printable grid format**
 
 ## Project Structure
 
-# src/
-# │
-# ├── pages/ # App pages (Explain, Quiz, Flashcards)
-# ├── services/
-# │ └── gemini.ts # API integration
-# ├── store/
-# │ └── useStore.ts # Global state (Zustand)
-# ├── utils/
-# │ └── exportPdf.ts # PDF export logic
-# │
-# ├── App.tsx
-# ├── main.tsx
-# └── index.css
+### src/
+### │
+### ├── pages/ # App pages (Explain, Quiz, Flashcards)
+### ├── services/
+### │ └── gemini.ts # API integration
+### ├── store/
+### │ └── useStore.ts # Global state (Zustand)
+### ├── utils/
+### │ └── exportPdf.ts # PDF export logic
+### │
+### ├── App.tsx
+### ├── main.tsx
+### └── index.css
 
 
 ---
