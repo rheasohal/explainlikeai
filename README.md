@@ -3,7 +3,6 @@
 
 ExplainLikeAI uses AI to generate **personalized explanations, flashcards, quizzes, and mind maps**, all tailored to your learning level and interests.
 
----
 
 ## Features
 
@@ -14,7 +13,6 @@ ExplainLikeAI uses AI to generate **personalized explanations, flashcards, quizz
   *Chef, Athlete, Programmer, Musician, etc.*  
 - Real-time streaming responses *(no waiting for full output)*  
 
----
 
 ### Flashcards & Quiz Mode
 - Auto-generate flashcards from any explanation  
@@ -25,7 +23,6 @@ ExplainLikeAI uses AI to generate **personalized explanations, flashcards, quizz
 - Smart repetition *(missed cards appear more often)*  
 - Quiz mode with MCQs and final scoring  
 
----
 
 ### PDF Export
 Export formatted learning material including:
@@ -37,7 +34,6 @@ Export formatted learning material including:
 
 Flashcards can also be exported in **printable grid format**
 
----
 
 ### Follow-up Q&A
 - Ask unlimited questions  
