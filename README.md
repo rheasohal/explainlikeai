@@ -78,19 +78,19 @@ Flashcards can also be exported in **printable grid format**
 
 ## Project Structure
 
-src/
-│
-├── pages/ # App pages (Explain, Quiz, Flashcards)
-├── services/
-│ └── gemini.ts # API integration
-├── store/
-│ └── useStore.ts # Global state (Zustand)
-├── utils/
-│ └── exportPdf.ts # PDF export logic
-│
-├── App.tsx
-├── main.tsx
-└── index.css
+# src/
+# │
+# ├── pages/ # App pages (Explain, Quiz, Flashcards)
+# ├── services/
+# │ └── gemini.ts # API integration
+# ├── store/
+# │ └── useStore.ts # Global state (Zustand)
+# ├── utils/
+# │ └── exportPdf.ts # PDF export logic
+# │
+# ├── App.tsx
+# ├── main.tsx
+# └── index.css
 
 
 ---
@@ -121,16 +121,8 @@ npm install
 npm run dev
 
 
-Deployment
 
-Deployed using Vercel:
-
-Push repository to GitHub
-Import into Vercel
-Add environment variable:
-VITE_GEMINI_API_KEY
-Deploy
-Use Cases
+## Use Cases: 
 Students learning complex topics
 Teachers creating differentiated content
 Self-learners seeking intuitive explanations
@@ -143,5 +135,3 @@ Mobile optimization
 Voice-based explanations
 Contributing
 
-Pull requests are welcome.
-For major changes, please open an issue first to discuss proposed updates.
