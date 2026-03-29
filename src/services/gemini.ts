@@ -1,9 +1,12 @@
 import { GoogleGenerativeAI, ChatSession, GenerativeModel } from '@google/generative-ai';
 import { useStore } from '../store/useStore';
+import { saveSession, saveMessage } from './chatHistory';
+
 
 let genAI: GoogleGenerativeAI | null = null;
 let model: GenerativeModel | null = null;
 let chatSession: ChatSession | null = null;
+
 
 // Lazily initialize the API to prevent fatal React crashes on page load if the API key is missing
 const initAPI = () => {
@@ -19,41 +22,72 @@ const initAPI = () => {
   return true;
 };
 
+
 export const streamExplanation = async (topic: string, level: string, interest: string) => {
   if (!initAPI() || !model) {
     useStore.getState().setExplanationText('Error: VITE_GEMINI_API_KEY is not defined in your environment (.env.local). Please create a .env.local file with VITE_GEMINI_API_KEY="YOUR_API_KEY".');
     return;
   }
-  
-  const prompt = `You are a world-class explainer app called ExplainLikeAI. 
-Explain the concept of "${topic}" explicitly tailored for a "${level}" comprehension level. 
+
+
+  const prompt = `You are a world-class explainer app called ExplainLikeAI.
+Explain the concept of "${topic}" explicitly tailored for a "${level}" comprehension level.
 You MUST use an analogy specifically related to "${interest}".
 Keep the explanation engaging, accurate, and perfectly matched to the requested complexity level. Structure it clearly.`;
-  
+
+
   try {
     chatSession = model.startChat({
-        history: [
-            { role: "user", parts: [{ text: prompt }] }
-        ]
+      history: [{ role: "user", parts: [{ text: prompt }] }]
     });
+
 
     const result = await model.generateContentStream(prompt);
     let fullText = '';
-    
+
+
     useStore.getState().setIsStreaming(true);
     useStore.getState().setExplanationText('');
-    
+
+
     for await (const chunk of result.stream) {
       const chunkText = chunk.text();
       fullText += chunkText;
       useStore.getState().setExplanationText(fullText);
     }
-    
+
+
     useStore.getState().setIsStreaming(false);
     useStore.getState().addMessage({ role: 'model', content: fullText });
-    
+
+
+    // ── Save to Firestore ─────────────────────────────────────────────────────
+  const { currentUser, setActiveSessionId } = useStore.getState();
+console.log("DEBUG currentUser:", currentUser);
+if (currentUser) {
+  try {
+    console.log("DEBUG saving session for uid:", currentUser.uid);
+    const sessionId = await saveSession(currentUser.uid, topic, level, interest);
+    console.log("DEBUG session saved, id:", sessionId);
+    setActiveSessionId(sessionId);
+    await saveMessage(sessionId, 'model', fullText);
+    console.log("DEBUG message saved");
+  } catch (err) {
+    console.error("Failed to save session to Firestore:", err);
+  }
+} else {
+  console.warn("DEBUG no currentUser — skipping save");
+}
+
+
+
+    // ─────────────────────────────────────────────────────────────────────────
+
+
     generateFlashcards(topic, fullText, level);
     generateMindMapNodes(topic, fullText, level);
+
+
   } catch (err: any) {
     console.error(err);
     useStore.getState().setIsStreaming(false);
@@ -61,31 +95,37 @@ Keep the explanation engaging, accurate, and perfectly matched to the requested 
   }
 };
 
+
 export const generateFlashcards = async (topic: string, explanation: string, level: string) => {
   if (!initAPI() || !model) return;
+
 
   const prompt = `Based on the following explanation of "${topic}" at a "${level}" level, generate EXACTLY 5 flashcards.
 Format the output as a valid JSON array of objects, where each object has "id" (a unique string integer like "1", "2"), "front" (a question or term), and "back" (the concise answer or definition).
 
+
 Explanation context:
 ${explanation}
 
+
 Only output the raw JSON array. Do not include markdown codeblocks (\`\`\`json) in your response, just the raw array.`;
+
 
   try {
     const response = await model.generateContent(prompt);
     const text = response.response.text();
     const cleanedText = text.replace(/```json/g, '').replace(/```/g, '').trim();
     const flashcards = JSON.parse(cleanedText);
-    
     useStore.getState().setFlashcards(flashcards);
-  } catch(err) {
+  } catch (err) {
     console.error("Failed to generate flashcards", err);
   }
 };
 
+
 export const generateMindMapNodes = async (topic: string, explanation: string, level: string) => {
   if (!initAPI() || !model) return;
+
 
   const prompt = `Read this explanation about "${topic}" (aimed at a "${level}" level).
 Generate a hierarchical Mind Map tree of up to 7 related concept nodes summarizing the structure.
@@ -95,30 +135,53 @@ Each object MUST have:
 "label": a concise 2-5 word title for the concept.
 "parentId": the string ID of the node it stems from, or null if it's the root node "1".
 
+
 Explanation context:
 ${explanation}`;
+
 
   try {
     const response = await model.generateContent(prompt);
     const text = response.response.text();
     const cleanedText = text.replace(/```json/g, '').replace(/```/g, '').trim();
     const concepts = JSON.parse(cleanedText);
-    
     useStore.getState().setRelatedConcepts(concepts);
   } catch (err) {
     console.error("Failed to extract mind map concepts", err);
   }
 };
 
+
 export const sendFollowUpQuestion = async (message: string) => {
-    if (!chatSession) return;
-    
-    useStore.getState().addMessage({ role: 'user', content: message });
-    
-    try {
-        const result = await chatSession.sendMessage(message);
-        useStore.getState().addMessage({ role: 'model', content: result.response.text() });
-    } catch (err) {
-        console.error("Chat error", err);
+  if (!chatSession) return;
+
+
+  useStore.getState().addMessage({ role: 'user', content: message });
+
+
+  try {
+    const result = await chatSession.sendMessage(message);
+    const reply = result.response.text();
+    useStore.getState().addMessage({ role: 'model', content: reply });
+
+
+    // ── Save follow-up messages to the active session ─────────────────────────
+    const { currentUser, activeSessionId } = useStore.getState();
+    if (currentUser && activeSessionId) {
+      try {
+        await saveMessage(activeSessionId, 'user', message);
+        await saveMessage(activeSessionId, 'model', reply);
+      } catch (err) {
+        console.error("Failed to save follow-up messages:", err);
+      }
     }
+    // ─────────────────────────────────────────────────────────────────────────
+
+
+  } catch (err) {
+    console.error("Chat error", err);
+  }
 };
+
+
+
